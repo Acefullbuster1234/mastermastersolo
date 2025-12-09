@@ -33,7 +33,7 @@ public class Inventory {
 
     // Add an item to inventory
     public void addItem(Item item) throws MaxSlotsReached {
-        if (item.isStackable() && item instanceof Consumable) {
+        if (item.isStackable() && item.getType() == ItemType.Armor) {
             // Try to add to an existing stack
             for (Slot s : slots) {
                 if (s.canAdd(item)) {
