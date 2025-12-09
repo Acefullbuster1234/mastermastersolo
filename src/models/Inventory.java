@@ -1,109 +1,117 @@
 package models;
 
 import exceptions.MaxSlotsReached;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Inventory {
-    private final double maxPlayerCarryWeight = (double)50.0F;
-    private double currentPlayerCarryWeight = (double)0.0F;
+
+    private final double maxPlayerCarryWeight = 50.00;
+    private double currentPlayerCarryWeight = 0;
+
     private final Slots inventorySlots = new Slots();
-    private final List<Slot> slots = new ArrayList();
+    private final List<Slot> slots = new ArrayList<>();
+
+    public Inventory() {}
 
     public double getMaxPlayerCarryWeight() {
-        return (double)50.0F;
+        return maxPlayerCarryWeight;
     }
 
     public double getCurrentPlayerCarryWeight() {
-        return this.currentPlayerCarryWeight;
+        return currentPlayerCarryWeight;
     }
 
     public Slots getInventorySlots() {
-        return this.inventorySlots;
+        return inventorySlots;
     }
 
     public List<Slot> getSlots() {
-        return this.slots;
+        return slots;
     }
 
+    // Add an item to inventory
     public void addItem(Item item) throws MaxSlotsReached {
         if (item.isStackable() && item instanceof Consumable) {
-            for(Slot s : this.slots) {
+            // Try to add to an existing stack
+            for (Slot s : slots) {
                 if (s.canAdd(item)) {
                     s.add(item);
-                    this.recalculateWeightAndSlots();
+                    recalculateWeightAndSlots();
                     return;
                 }
             }
         }
 
-        if (this.inventorySlots.getUsedSlots() >= this.inventorySlots.getCurrentSlots()) {
+        // Otherwise, create a new slot
+        if (inventorySlots.getUsedSlots() >= inventorySlots.getCurrentSlots()) {
             throw new MaxSlotsReached("No free inventory slots!");
-        } else {
-            Slot newSlot = new Slot();
-            newSlot.add(item);
-            this.slots.add(newSlot);
-            this.recalculateWeightAndSlots();
         }
+
+        Slot newSlot = new Slot();
+        newSlot.add(item);
+        slots.add(newSlot);
+        recalculateWeightAndSlots();
     }
 
+    // Remove an item from inventory
     public void removeItem(Item item) {
-        for(Slot s : this.slots) {
+        for (Slot s : slots) {
             if (s.getItems().contains(item)) {
                 s.remove(item);
+                // Remove empty slots
                 if (s.getItems().isEmpty()) {
-                    this.slots.remove(s);
+                    slots.remove(s);
                 }
                 break;
             }
         }
-
-        this.recalculateWeightAndSlots();
+        recalculateWeightAndSlots();
     }
 
+    // Recalculate weight and used slots
     private void recalculateWeightAndSlots() {
-        double totalWeight = (double)0.0F;
+        double totalWeight = 0;
         int usedSlotsCount = 0;
 
-        for(Slot s : this.slots) {
-            for(Item i : s.getItems()) {
+        for (Slot s : slots) {
+            for (Item i : s.getItems()) {
                 totalWeight += i.getWeight();
             }
-
-            ++usedSlotsCount;
+            usedSlotsCount += 1; // 1 slot per Slot object
         }
 
-        this.currentPlayerCarryWeight = totalWeight;
-        this.inventorySlots.setUsedSlots(usedSlotsCount);
+        currentPlayerCarryWeight = totalWeight;
+        inventorySlots.setUsedSlots(usedSlotsCount);
     }
 
+    // Inner class representing a slot
     public static class Slot {
-        private final List<Item> items = new ArrayList();
+        private final List<Item> items = new ArrayList<>();
         private final int MAX_STACK = 5;
 
         public List<Item> getItems() {
-            return this.items;
+            return items;
         }
 
         public boolean canAdd(Item item) {
-            if (this.items.isEmpty()) {
-                return true;
-            } else {
-                Item first = (Item)this.items.get(0);
-                return first.isStackable() && item.getClass() == first.getClass() && this.items.size() < 5;
-            }
+            if (items.isEmpty()) return true;
+            Item first = items.get(0);
+            return first.isStackable()
+                    && item.getClass() == first.getClass()
+                    && items.size() < MAX_STACK;
         }
 
         public void add(Item item) {
-            if (!this.canAdd(item)) {
+            if (!canAdd(item)) {
                 throw new IllegalStateException("Cannot add item to this slot");
-            } else {
-                this.items.add(item);
             }
+            items.add(item);
         }
 
         public void remove(Item item) {
-            this.items.remove(item);
+            items.remove(item);
         }
     }
 }

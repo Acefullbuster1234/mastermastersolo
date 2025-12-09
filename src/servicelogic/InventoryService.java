@@ -101,7 +101,7 @@ public class InventoryService {
         this.worldItems.add(new Weapon("Short Axe", (double)2.5F, 10));
         this.worldItems.add(new Armor("Helmet", (double)2.0F, 2));
         this.worldItems.add(new Armor("Chestplate", (double)8.0F, 6));
-        this.worldItems.add(new Consumable("Health Potion", 0.2, true));
+        this.worldItems.add(new Consumable("Health Potion", 0.2));
         this.worldItems.add(new Weapon("Test Sword", 49.9999, 10));
     }
 
@@ -132,31 +132,32 @@ public class InventoryService {
     public void displayPlayerInventory(Player p) {
         Inventory inv = p.getInventory();
         List<Inventory.Slot> slots = inv.getSlots();
+
         if (slots.isEmpty()) {
             System.out.println("Your inventory is empty");
-        } else {
-            System.out.println("-----------------");
+            return;
+        }
 
-            for(Inventory.Slot slot : slots) {
-                List<Item> itemsInSlot = slot.getItems();
-                if (!itemsInSlot.isEmpty()) {
-                    Item firstItem = (Item)itemsInSlot.get(0);
-                    String itemName = firstItem.getName();
-                    double itemWeight = firstItem.getWeight();
-                    int count = itemsInSlot.size();
-                    if (firstItem.isStackable()) {
-                        System.out.println("- " + itemName + " x" + count + " (" + itemWeight * (double)count + " kg)");
-                    } else {
-                        for(Item item : itemsInSlot) {
-                            PrintStream var10000 = System.out;
-                            String var10001 = item.getName();
-                            var10000.println("- " + var10001 + " (" + item.getWeight() + " kg)");
-                        }
-                    }
+        System.out.println("-----------------");
+        for (Inventory.Slot slot : slots) {
+            List<Item> itemsInSlot = slot.getItems();
+            if (itemsInSlot.isEmpty()) continue; // safety check
+
+            Item firstItem = itemsInSlot.get(0);
+            String itemName = firstItem.getName();
+            double itemWeight = firstItem.getWeight();
+            int count = itemsInSlot.size();
+
+            if (firstItem.isStackable()) {
+                System.out.println("- " + itemName + " x" + count + " (" + (itemWeight * count) + " kg)");
+            } else {
+                // Non-stackable, display each individually
+                for (Item item : itemsInSlot) {
+                    System.out.println("- " + item.getName() + " (" + item.getWeight() + " kg)");
                 }
             }
-
-            System.out.println("---------------");
         }
+        System.out.println("---------------");
     }
+
 }
